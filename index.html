@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNO Online - Arkadaşlarınla Oyna & İndir</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        unoRed: '#ed1c24',
+                        unoYellow: '#ffde00',
+                        unoGreen: '#00a651',
+                        unoBlue: '#0054a6',
+                        unoDark: '#0b0f19'
+                    },
+                    animation: {
+                        'float-slow': 'float 6s ease-in-out infinite',
+                        'float-reverse': 'floatRev 7s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'scale-up': 'scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-14px) rotate(4deg)' }
+                        },
+                        floatRev: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(14px) rotate(-4deg)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+                            '50%': { opacity: '0.7', transform: 'scale(1.05)' }
+                        },
+                        scaleUp: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glass {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-modal {
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .glow-red { box-shadow: 0 0 40px rgba(237, 28, 36, 0.4); }
+        .glow-blue { box-shadow: 0 0 40px rgba(0, 84, 166, 0.4); }
+        
+        .input-group:focus-within label {
+            color: #ffde00;
+        }
+        .input-group:focus-within svg {
+            color: #ffde00;
+            transform: scale(1.1);
+        }
+
+        /* Kayan gökkuşağı indirim bandı */
+        #promoBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; height: 32px; z-index: 44; overflow: hidden; align-items: center;
+            background: linear-gradient(90deg,#ff0000,#ff8a00,#ffe600,#00d44a,#00b4ff,#6a00ff,#ff00c8,#ff0000); background-size: 200% 100%; animation: rainbowShift 6s linear infinite; }
+        #promoBar.on { display: flex; }
+        @keyframes rainbowShift { to { background-position: 200% 0; } }
+        #promoTrack { display: flex; width: max-content; animation: promoScroll 20s linear infinite; }
+        @keyframes promoScroll { to { transform: translateX(-50%); } }
+        .promo-copy { display: flex; flex-shrink: 0; align-items: center; white-space: nowrap; }
+        .promo-item { font-weight: 800; font-size: 13px; letter-spacing: .02em; color: #fff; padding: 0 1.25rem; text-shadow: 0 1px 3px rgba(0,0,0,.75); }
+        .promo-sep { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.75); }
+        @media (prefers-reduced-motion: reduce) { #promoTrack { animation-duration: 90s; } }
+        /* Canlı destek */
+        .sup-msg { max-width: 82%; padding: .5rem .75rem; border-radius: 1rem; font-size: .85rem; word-break: break-word; white-space: pre-wrap; }
+    </style>
+</head>
+<body class="bg-unoDark text-white min-h-screen flex flex-col selection:bg-unoRed selection:text-white overflow-x-hidden">
+
+    <!-- ARKA PLAN NEON IŞIMALARI -->
+    <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-unoRed/20 rounded-full blur-[140px] pointer-events-none animate-pulse-glow"></div>
+    <div class="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-unoBlue/20 rounded-full blur-[140px] pointer-events-none animate-pulse-glow" style="animation-delay: 1.5s;"></div>
+
+    <!-- NAVBAR -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/UNO_Logo.svg" alt="UNO Logo" class="h-12 w-auto transform group-hover:scale-110 group-hover:rotate-3 transition duration-300 drop-shadow-md">
+                <span class="text-2xl font-black italic tracking-wider bg-gradient-to-r from-unoYellow via-white to-unoRed bg-clip-text text-transparent">ONLINE</span>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-8 font-semibold text-slate-300">
+                <a href="#hero" class="hover:text-unoYellow transition-all duration-200 hover:-translate-y-0.5">Ana Sayfa</a>
+                <a href="#features" class="hover:text-unoYellow transition-all duration-200 hover:-translate-y-0.5">Özellikler</a>
+                <a id="navAnn" href="#announcements" class="hidden hover:text-unoYellow transition-all duration-200 hover:-translate-y-0.5">Duyurular</a>
+                <a id="navUpd" href="#updates" class="hidden hover:text-unoYellow transition-all duration-200 hover:-translate-y-0.5">Güncellemeler</a>
+                <a href="#leaderboard" class="hover:text-unoYellow transition-all duration-200 hover:-translate-y-0.5">Sıralama</a>
+            </nav>
+
+            <div id="loggedOutNav" class="flex items-center gap-3 sm:gap-4">
+                <button onclick="openAuthModal('login')" class="px-5 py-2.5 rounded-xl text-slate-200 hover:text-white font-semibold transition hover:bg-slate-800/60 flex items-center gap-2 border border-slate-700/50">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    <span>Giriş Yap</span>
+                </button>
+                <button onclick="openAuthModal('register')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-unoRed via-red-600 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-unoRed/30 transition transform hover:-translate-y-0.5 active:translate-y-0">
+                    Kayıt Ol
+                </button>
+            </div>
+
+            <div id="loggedInNav" class="hidden flex items-center gap-4">
+                <div onclick="openProfileModal()" title="Profili düzenle" class="flex items-center gap-3 bg-slate-900/80 border border-slate-700/60 hover:border-unoYellow/60 p-1.5 pr-4 rounded-full cursor-pointer transition">
+                    <img id="userAvatar" src="" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-unoYellow">
+                    <span id="userName" class="text-sm font-bold text-white"></span>
+                </div>
+                <button onclick="logout()" title="Çıkış Yap" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-slate-700/60 transition">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-7 text-center lg:text-left z-10">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-unoYellow/30 text-unoYellow font-semibold text-sm mb-6 shadow-inner animate-bounce" style="animation-duration: 3s;">
+                        <i data-lucide="sparkles" class="w-4 h-4 animate-spin"></i>
+                        <span>Yeni Sezon Başladı! 2.0 Güncellemesi Yayında</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-white leading-none tracking-tight mb-6">
+                        EFSANEVİ CARDS <br>
+                        <span class="bg-gradient-to-r from-unoYellow via-unoGreen to-unoBlue bg-clip-text text-transparent">DÜNYASINA KATIL!</span>
+                    </h1>
+
+                    <p class="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto lg:mx-0 mb-8 font-normal leading-relaxed">
+                        Arkadaşlarınla buluş, stratejini konuştur ve son kartı atmadan önce <span class="text-unoRed font-bold">UNO!</span> demeyi unutma. Hemen ücretsiz indir ve maceraya başla!
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
+                        <button onclick="startDownload()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-unoGreen via-emerald-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-slate-950 font-black text-lg rounded-2xl shadow-xl shadow-unoGreen/25 hover:shadow-unoGreen/40 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-3 group">
+                            <i data-lucide="download" class="w-6 h-6 stroke-[3] group-hover:translate-y-0.5 transition"></i>
+                            <span>OYUNU İNDİR (v2.4)</span>
+                        </button>
+                        <div class="text-xs text-slate-400 text-center sm:text-left">
+                            <p class="font-semibold text-slate-300">Windows & macOS & Mobile</p>
+                            <p>Ücretsiz • 145 MB • Güvenli İndirme</p>
+                        </div>
+                    </div>
+
+                    <div id="downloadProgressBox" class="hidden glass p-4 rounded-2xl border border-unoGreen/40 max-w-md mx-auto lg:mx-0 mb-6 animate-scale-up">
+                        <div class="flex justify-between text-sm font-semibold mb-2">
+                            <span class="text-unoGreen flex items-center gap-2">
+                                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> İndiriliyor...
+                            </span>
+                            <span id="downloadPercent" class="text-white">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+                            <div id="downloadBar" class="bg-gradient-to-r from-unoGreen to-unoYellow h-full rounded-full w-0 transition-all duration-200"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 max-w-md mx-auto lg:mx-0">
+                        <div>
+                            <p class="text-2xl font-black text-white">5/5</p>
+                            <p class="text-xs text-slate-400 font-medium">Oyun Deneyimi</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-unoYellow">4.3/5</p>
+                            <p class="text-xs text-slate-400 font-medium">Oyuncu Puanı</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black text-unoGreen">100%</p>
+                            <p class="text-xs text-slate-400 font-medium">Ücretsiz</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 relative flex justify-center items-center">
+                    <div class="relative w-72 sm:w-80 h-96 flex justify-center items-center">
+                        <div class="absolute w-60 h-88 sm:w-64 sm:h-96 rounded-2xl glow-blue transform -rotate-12 translate-x-6 translate-y-4 transition duration-500 hover:rotate-0 hover:scale-105 z-10 shadow-2xl overflow-hidden animate-float-reverse bg-slate-900 border border-slate-700/50">
+                            <img src="blue.jpg" alt="Blue Reverse Card" class="w-full h-full object-cover rounded-2xl">
+                        </div>
+
+                        <div class="absolute w-60 h-88 sm:w-64 sm:h-96 rounded-2xl glow-red transform rotate-6 -translate-x-4 transition duration-500 hover:rotate-0 hover:scale-105 z-20 shadow-2xl overflow-hidden animate-float bg-slate-900 border border-slate-700/50">
+                            <img src="red.jpg" alt="Red Reverse Card" class="w-full h-full object-cover rounded-2xl">
+                        </div>
+
+                        <div class="absolute -bottom-6 z-30 glass px-6 py-3 rounded-full border border-emerald-500/40 shadow-xl flex items-center gap-3">
+                            <span class="w-3 h-3 rounded-full bg-unoGreen animate-ping"></span>
+                            <span class="text-sm font-bold text-slate-200">5/5 Oyun Deneyimi</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- DUYURULAR -->
+    <section id="announcements" class="hidden py-16 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-black text-white mb-3">📢 DUYURULAR</h2>
+                <p class="text-slate-400 text-sm">Ekibimizden son haberler</p>
+            </div>
+            <div id="announcementList" class="space-y-4"></div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="py-20 bg-slate-900/40 border-y border-slate-800/60 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">NEDEN UNO ONLINE?</h2>
+                <p class="text-slate-400">Klasik UNO deneyimini dijital dünyanın modern mekanikleriyle birleştirdik.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass p-8 rounded-3xl border border-slate-800 hover:border-unoRed/50 hover:bg-slate-900/60 transition duration-300 group">
+                    <div class="w-14 h-14 bg-unoRed/10 text-unoRed rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition">
+                        <i data-lucide="users" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Çok Oyunculu Odalar</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Dünyanın dört bir yanındaki oyuncularla eşleş veya kendi özel odanı kurarak arkadaşlarına meydan oku.</p>
+                </div>
+
+                <div class="glass p-8 rounded-3xl border border-slate-800 hover:border-unoYellow/50 hover:bg-slate-900/60 transition duration-300 group">
+                    <div class="w-14 h-14 bg-unoYellow/10 text-unoYellow rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition">
+                        <i data-lucide="mic" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Canlı Sesli Sohbet</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Oyun sırasında arkadaşlarınla dahili yüksek kaliteli sesli sohbet ile iletişime geç, heyecanı katla.</p>
+                </div>
+
+                <div class="glass p-8 rounded-3xl border border-slate-800 hover:border-unoGreen/50 hover:bg-slate-900/60 transition duration-300 group">
+                    <div class="w-14 h-14 bg-unoGreen/10 text-unoGreen rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition">
+                        <i data-lucide="trophy" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Haftalık Turnuvalar</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Her hafta düzenlenen derece turnuvalarına katıl, özel kart desteleri ve rozetler kazan.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GÜNCELLEMELER -->
+    <section id="updates" class="hidden py-16 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-black text-white mb-3">🚀 GÜNCELLEMELER</h2>
+                <p class="text-slate-400 text-sm">Oyuna gelen yenilikler</p>
+            </div>
+            <div id="updateList" class="space-y-4"></div>
+        </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section id="leaderboard" class="py-20 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-black text-white mb-3">LİDERLİK TABLOSU</h2>
+                <p class="text-slate-400 text-sm">Bu haftanın en çok zafer kazanan UNO ustaları</p>
+            </div>
+
+            <div class="glass rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+                <div class="p-4 sm:p-6 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Sıra & Oyuncu</span>
+                    <span>Zafer Sayısı</span>
+                </div>
+                <div class="divide-y divide-slate-800/60 text-sm font-semibold">
+                    <div class="p-4 sm:p-6 flex justify-between items-center bg-unoYellow/5 hover:bg-unoYellow/10 transition">
+                        <div class="flex items-center gap-4">
+                            <span class="w-8 h-8 rounded-full bg-unoYellow text-slate-950 font-black flex items-center justify-center shadow-lg shadow-unoYellow/20">1</span>
+                            <span class="text-white font-bold">AhbabMaster_99</span>
+                        </div>
+                        <span class="text-unoYellow font-extrabold">1,420 勝</span>
+                    </div>
+                    <div class="p-4 sm:p-6 flex justify-between items-center hover:bg-slate-800/40 transition">
+                        <div class="flex items-center gap-4">
+                            <span class="w-8 h-8 rounded-full bg-slate-700 text-slate-200 font-black flex items-center justify-center">2</span>
+                            <span class="text-slate-200">KartKralı</span>
+                        </div>
+                        <span class="text-slate-300 font-bold">1,150 勝</span>
+                    </div>
+                    <div class="p-4 sm:p-6 flex justify-between items-center hover:bg-slate-800/40 transition">
+                        <div class="flex items-center gap-4">
+                            <span class="w-8 h-8 rounded-full bg-amber-800 text-amber-200 font-black flex items-center justify-center">3</span>
+                            <span class="text-slate-200">UnoPro_TR</span>
+                        </div>
+                        <span class="text-slate-300 font-bold">980 勝</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto glass border-t border-slate-800/80 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/UNO_Logo.svg" alt="UNO Logo" class="h-10 mx-auto mb-4 hover:scale-105 transition">
+            <p class="text-slate-500 text-xs mb-4">© 2026 UNO Online Fan Project. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- PROFESYONEL ANIMASYONLU AUTH MODAL  -->
+    <div id="authModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-all duration-300">
+        <div class="glass-modal w-full max-w-md rounded-3xl border border-slate-700/60 p-6 sm:p-8 relative shadow-2xl animate-scale-up overflow-hidden">
+            
+            <div id="modalGlow" class="absolute -top-24 -right-24 w-48 h-48 bg-unoRed/30 rounded-full blur-3xl pointer-events-none transition-all duration-500"></div>
+
+            <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800/60 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Başlık & Logo -->
+            <div class="text-center mb-6">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/UNO_Logo.svg" alt="UNO Logo" class="h-10 mx-auto mb-3">
+                <div id="modalTitleBox">
+                    <h3 id="modalTitle" class="text-2xl font-black text-white transition-all duration-300">Tekrar Hoş Geldin!</h3>
+                    <p id="modalSubtitle" class="text-xs text-slate-400 mt-1 transition-all duration-300">UNO Online hesabına giriş yap ve arenaya dön</p>
+                </div>
+            </div>
+
+            <!-- Tab Seçimi -->
+            <div class="flex gap-1.5 p-1.5 bg-slate-900/90 rounded-2xl mb-6 border border-slate-800">
+                <button id="loginTabBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 bg-gradient-to-r from-unoRed to-red-600 text-white shadow-md">Giriş Yap</button>
+                <button id="registerTabBtn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Kayıt Ol</button>
+            </div>
+
+            <!-- Sosyal Giriş Butonları -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button type="button" id="googleBtn" disabled onclick="socialLogin('google')" class="opacity-50 cursor-not-allowed py-2.5 px-4 rounded-xl bg-slate-900/80 border border-slate-700/60 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 hover:bg-slate-800 hover:border-slate-500 transition">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/></svg><span id="googleLabel">Google (Yakında)</span></button>
+                <button type="button" id="discordBtn" onclick="socialLogin('discord')" class="py-2.5 px-4 rounded-xl bg-slate-900/80 border border-slate-700/60 text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 hover:bg-slate-800 hover:border-slate-500 transition">
+                    <svg class="w-4 h-4 fill-[#5865F2]" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    Discord
+                </button>
+            </div>
+
+            <div class="relative flex py-2 items-center mb-6">
+                <div class="flex-grow border-t border-slate-800"></div>
+                <span class="flex-shrink mx-4 text-[10px] uppercase font-bold text-slate-500 tracking-wider">veya e-posta ile</span>
+                <div class="flex-grow border-t border-slate-800"></div>
+            </div>
+
+            <div id="formContainer" class="transition-all duration-300">
+                <!-- GİRİŞ FORMU -->
+                <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                    <div class="input-group">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">E-posta veya Kullanıcı Adı</label>
+                        <div class="relative">
+                            <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                            <input id="loginInput" type="text" required placeholder="ornek@mail.com" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow focus:ring-1 focus:ring-unoYellow transition">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label class="block text-xs font-semibold text-slate-300 transition">Şifre</label>
+                            <a href="#" onclick="event.preventDefault(); toast('Şifre sıfırlama henüz aktif değil.')" class="text-[11px] font-medium text-unoYellow hover:underline">Şifremi Unuttum?</a>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                            <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow focus:ring-1 focus:ring-unoYellow transition">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-unoRed to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black text-sm rounded-xl shadow-lg shadow-unoRed/25 hover:shadow-unoRed/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 mt-2">
+                        GİRİŞ YAP
+                    </button>
+                </form>
+
+                <!-- KAYIT FORMU -->
+                <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-4 hidden">
+                    <div class="input-group">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Kullanıcı Adı</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                            <input id="regUsername" type="text" required placeholder="AhbabOyuncu" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" title="3-20 karakter: harf, rakam, alt çizgi" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoGreen focus:ring-1 focus:ring-unoGreen transition">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">E-posta Adresi</label>
+                        <div class="relative">
+                            <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                            <input id="regEmail" type="email" required placeholder="ahbab@mail.com" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoGreen focus:ring-1 focus:ring-unoGreen transition">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Şifre</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                            <input id="regPassword" type="password" required minlength="8" placeholder="••••••••" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoGreen focus:ring-1 focus:ring-unoGreen transition">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-unoGreen to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-unoGreen/25 hover:shadow-unoGreen/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 mt-2">
+                        KAYIT OL VE OYNA
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- İNDİRİM BANDI (admin panelinden yönetilir) -->
+    <div id="promoBar" aria-live="polite"><div id="promoTrack"></div></div>
+
+    <!-- CANLI DESTEK -->
+    <div id="supportWidget" class="fixed right-5 z-[45] flex flex-col items-end" style="bottom: calc(1.25rem + var(--banner-h, 0px));">
+        <div id="supportPanel" class="hidden mb-3 w-[22rem] max-w-[calc(100vw-2.5rem)] glass-modal rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-scale-up" style="height: 28rem; max-height: 65vh;">
+            <div class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-unoRed to-orange-600">
+                <div>
+                    <p class="font-black text-sm">Canlı Destek</p>
+                    <p class="text-[11px] text-white/80">Sorunlarını yaz, ekibimiz yanıtlasın</p>
+                </div>
+                <button onclick="toggleSupport()" class="p-1.5 rounded-full hover:bg-white/20 transition" title="Kapat"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="supportMessages" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+            <form onsubmit="sendSupport(event)" class="p-3 border-t border-slate-800 flex gap-2">
+                <input id="supportInput" maxlength="1000" autocomplete="off" placeholder="Mesajını yaz..." class="flex-1 min-w-0 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                <button class="px-3 rounded-xl bg-unoGreen text-slate-950 font-black text-sm hover:brightness-110 transition" title="Gönder"><i data-lucide="send" class="w-4 h-4"></i></button>
+            </form>
+        </div>
+        <button id="supportBtn" onclick="toggleSupport()" title="Canlı Destek" class="relative w-14 h-14 rounded-full bg-gradient-to-br from-unoRed to-orange-600 shadow-xl shadow-unoRed/40 flex items-center justify-center hover:scale-110 transition">
+            <i data-lucide="message-circle" class="w-6 h-6"></i>
+            <span id="supportDot" class="hidden absolute top-0 right-0 w-4 h-4 rounded-full bg-unoYellow border-2 border-unoDark animate-ping"></span>
+            <span id="supportDot2" class="hidden absolute top-0 right-0 w-4 h-4 rounded-full bg-unoYellow border-2 border-unoDark"></span>
+        </button>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] hidden px-5 py-3 rounded-xl glass-modal text-sm font-semibold shadow-2xl"></div>
+
+    <!-- HESAP TAMAMLAMA (Google/Discord sonrası: isim + şifre seçimi) -->
+    <div id="setupModal" class="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-md rounded-3xl border border-slate-700/60 p-6 sm:p-8 relative shadow-2xl animate-scale-up">
+            <div class="text-center mb-6">
+                <div class="relative inline-block mb-3">
+                    <img id="setupAvatar" src="" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-unoYellow shadow-lg">
+                    <span id="setupBadge" class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-xs font-black"></span>
+                </div>
+                <h3 class="text-2xl font-black text-white">Neredeyse Hazır!</h3>
+                <p class="text-xs text-slate-400 mt-1">Doğrulandı <span id="setupEmail" class="text-slate-200 font-semibold"></span><br>Oyunda görünecek adını ve şifreni seç.</p>
+            </div>
+            <form onsubmit="handleSetupSubmit(event)" class="space-y-4">
+                <div class="input-group">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Kullanıcı Adı</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                        <input id="setupUsername" type="text" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" title="3-20 karakter: harf, rakam, alt çizgi" placeholder="AhbabOyuncu" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Şifre</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                        <input id="setupPassword" type="password" required minlength="8" placeholder="En az 8 karakter" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Şifre (Tekrar)</label>
+                    <div class="relative">
+                        <i data-lucide="lock-keyhole" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                        <input id="setupPassword2" type="password" required minlength="8" placeholder="••••••••" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                    </div>
+                </div>
+                <p id="setupError" class="text-xs text-red-400 font-semibold hidden"></p>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-unoGreen to-emerald-600 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-unoGreen/25 transition-all duration-300 transform hover:-translate-y-0.5">HESABI OLUŞTUR</button>
+                <button type="button" onclick="cancelSetup()" class="w-full py-2 text-xs text-slate-400 hover:text-white transition">Vazgeç</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PROFİL DÜZENLEME -->
+    <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-modal w-full max-w-md rounded-3xl border border-slate-700/60 p-6 sm:p-8 relative shadow-2xl animate-scale-up my-auto">
+            <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800/60 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-2xl font-black text-white text-center mb-1">Profili Düzenle</h3>
+            <p id="profileMeta" class="text-xs text-slate-400 text-center mb-6"></p>
+
+            <div class="flex flex-col items-center mb-6">
+                <img id="profileAvatar" src="" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-unoYellow shadow-lg mb-3">
+                <div class="flex flex-wrap justify-center gap-2 text-[11px] font-bold">
+                    <button type="button" onclick="document.getElementById('avatarFile').click()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">Fotoğraf Yükle</button>
+                    <button type="button" id="providerAvatarBtn" onclick="setAvatar('provider')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition hidden">Hesap Fotoğrafını Kullan</button>
+                    <button type="button" onclick="setAvatar('default')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition">Varsayılan</button>
+                </div>
+                <input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="handleAvatarFile(event)">
+            </div>
+
+            <form onsubmit="handleProfileSave(event)" class="space-y-4 mb-6">
+                <div class="input-group">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 transition">Kullanıcı Adı</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 transition"></i>
+                        <input id="profileUsername" type="text" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-unoRed to-red-600 text-white font-black text-sm rounded-xl shadow-lg shadow-unoRed/25 transition transform hover:-translate-y-0.5">KAYDET</button>
+            </form>
+
+            <form onsubmit="handlePasswordChange(event)" class="space-y-3 pt-5 border-t border-slate-800">
+                <p class="text-xs font-bold text-slate-300 uppercase tracking-wider">Şifre Değiştir</p>
+                <input id="curPassword" type="password" required placeholder="Mevcut şifre" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                <input id="newPassword" type="password" required minlength="8" placeholder="Yeni şifre (en az 8 karakter)" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-unoYellow transition">
+                <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm rounded-xl transition">Şifreyi Güncelle</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        lucide.createIcons();
+
+        const DEFAULT_AVATAR = (n) => 'https://api.dicebear.com/7.x/bottts/svg?seed=' + encodeURIComponent(n);
+        let currentUser = null;
+        let pendingAvatarMode = null; // profil modalında seçilen ama henüz kaydedilmemiş avatar
+        let pendingAvatarData = null;
+
+        const $ = (id) => document.getElementById(id);
+
+        function toast(msg, ms = 3500) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.classList.remove('hidden');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => t.classList.add('hidden'), ms);
+        }
+
+        async function api(path, method = 'GET', body) {
+            const res = await fetch(path, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                body: body ? JSON.stringify(body) : undefined,
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Bir hata oluştu.');
+            return data;
+        }
+
+        // ---------- OTURUM ----------
+        function renderNav() {
+            if (currentUser) {
+                $('loggedOutNav').classList.add('hidden');
+                $('loggedInNav').classList.remove('hidden');
+                $('userName').textContent = currentUser.username;
+                $('userAvatar').src = currentUser.avatar;
+            } else {
+                $('loggedOutNav').classList.remove('hidden');
+                $('loggedInNav').classList.add('hidden');
+            }
+        }
+
+        async function init() {
+            const params = new URLSearchParams(location.search);
+            const err = params.get('auth_error');
+            const welcome = params.get('welcome');
+            if (err || welcome) history.replaceState({}, '', location.pathname);
+            if (err) toast(err, 12000);
+
+            try {
+                const cfg = await api('/api/config');
+                if (cfg.google) {
+                    const g = $('googleBtn');
+                    g.disabled = false; g.classList.remove('opacity-50', 'cursor-not-allowed');
+                    $('googleLabel').textContent = 'Google';
+                }
+                if (!cfg.discord) $('discordBtn').title = 'Sunucuda Discord anahtarları ayarlanmamış';
+            } catch (e) {}
+
+            try {
+                const me = await api('/api/me');
+                currentUser = me.user || null;
+                renderNav();
+                if (me.pending) openSetupModal(me.pending);
+                else if (welcome === 'back' && currentUser) toast('Tekrar hoş geldin ' + currentUser.username + '!');
+            } catch (e) {
+                renderNav();
+                toast('Sunucuya ulaşılamadı. (node server.js çalışıyor mu?)');
+            }
+        }
+        init();
+
+        // ---------- AUTH MODAL ----------
+        function openAuthModal(type) {
+            $('authModal').classList.remove('hidden');
+            switchAuthTab(type);
+        }
+        function closeAuthModal() { $('authModal').classList.add('hidden'); }
+
+        function socialLogin(provider) {
+            window.location.href = '/auth/' + provider;
+        }
+
+        function switchAuthTab(type) {
+            const loginForm = $('loginForm'), registerForm = $('registerForm');
+            const loginTabBtn = $('loginTabBtn'), registerTabBtn = $('registerTabBtn');
+            const modalTitle = $('modalTitle'), modalSubtitle = $('modalSubtitle');
+            const modalGlow = $('modalGlow'), formContainer = $('formContainer');
+
+            formContainer.classList.remove('animate-fade-in');
+            void formContainer.offsetWidth;
+            formContainer.classList.add('animate-fade-in');
+
+            if (type === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginTabBtn.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 bg-gradient-to-r from-unoRed to-red-600 text-white shadow-md';
+                registerTabBtn.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 text-slate-400 hover:text-white';
+                modalTitle.innerText = "Tekrar Hoş Geldin!";
+                modalSubtitle.innerText = "UNO Online hesabına giriş yap ve arenaya dön";
+                modalGlow.className = "absolute -top-24 -right-24 w-48 h-48 bg-unoRed/30 rounded-full blur-3xl pointer-events-none transition-all duration-500";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                loginTabBtn.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 text-slate-400 hover:text-white';
+                registerTabBtn.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 bg-gradient-to-r from-unoGreen to-emerald-600 text-slate-950 shadow-md';
+                modalTitle.innerText = "Hesap Oluştur";
+                modalSubtitle.innerText = "Ücretsiz kayıt ol, hemen binlerce oyuncuyla yarış";
+                modalGlow.className = "absolute -top-24 -right-24 w-48 h-48 bg-unoGreen/30 rounded-full blur-3xl pointer-events-none transition-all duration-500";
+            }
+        }
+
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            try {
+                const { user } = await api('/api/auth/register', 'POST', {
+                    username: $('regUsername').value.trim(),
+                    email: $('regEmail').value.trim(),
+                    password: $('regPassword').value,
+                });
+                currentUser = user; renderNav(); closeAuthModal();
+                toast('Hoş geldin ' + user.username + '! Kayıt başarılı.');
+            } catch (err) { toast(err.message); }
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            try {
+                const { user } = await api('/api/auth/login', 'POST', {
+                    identifier: $('loginInput').value.trim(),
+                    password: $('loginPassword').value,
+                });
+                currentUser = user; renderNav(); closeAuthModal();
+                toast('Tekrar hoş geldin ' + user.username + '!');
+            } catch (err) { toast(err.message); }
+        }
+
+        async function logout() {
+            await api('/api/logout', 'POST').catch(() => {});
+            currentUser = null; renderNav();
+            toast('Başarıyla çıkış yapıldı.');
+        }
+
+        // ---------- HESAP TAMAMLAMA (isim + şifre) ----------
+        function openSetupModal(p) {
+            $('setupAvatar').src = p.avatar || DEFAULT_AVATAR(p.suggestedUsername || 'uno');
+            $('setupBadge').textContent = p.provider === 'google' ? 'G' : 'D';
+            $('setupBadge').style.color = p.provider === 'google' ? '#4285F4' : '#5865F2';
+            $('setupEmail').textContent = p.email ? '(' + p.email + ')' : (p.provider === 'discord' ? '(Discord hesabı)' : '');
+            $('setupUsername').value = p.suggestedUsername || '';
+            $('setupModal').classList.remove('hidden');
+        }
+
+        async function handleSetupSubmit(e) {
+            e.preventDefault();
+            const err = $('setupError');
+            err.classList.add('hidden');
+            if ($('setupPassword').value !== $('setupPassword2').value) {
+                err.textContent = 'Şifreler eşleşmiyor.'; err.classList.remove('hidden'); return;
+            }
+            try {
+                const { user } = await api('/api/auth/complete-signup', 'POST', {
+                    username: $('setupUsername').value.trim(),
+                    password: $('setupPassword').value,
+                });
+                currentUser = user; renderNav();
+                $('setupModal').classList.add('hidden');
+                closeAuthModal();
+                toast('Hoş geldin ' + user.username + '! Hesabın oluşturuldu.');
+            } catch (ex) { err.textContent = ex.message; err.classList.remove('hidden'); }
+        }
+
+        async function cancelSetup() {
+            await api('/api/auth/cancel-signup', 'POST').catch(() => {});
+            $('setupModal').classList.add('hidden');
+        }
+
+        // ---------- PROFİL ----------
+        function openProfileModal() {
+            if (!currentUser) return;
+            pendingAvatarMode = null; pendingAvatarData = null;
+            $('profileAvatar').src = currentUser.avatar;
+            $('profileUsername').value = currentUser.username;
+            const provName = { google: 'Google', discord: 'Discord', email: 'E-posta' }[currentUser.provider] || '';
+            $('profileMeta').textContent = (currentUser.email ? currentUser.email + ' • ' : '') + provName + ' hesabı';
+            $('providerAvatarBtn').classList.toggle('hidden', !currentUser.providerAvatar);
+            $('curPassword').value = ''; $('newPassword').value = '';
+            $('profileModal').classList.remove('hidden');
+        }
+        function closeProfileModal() { $('profileModal').classList.add('hidden'); }
+
+        function setAvatar(mode) {
+            pendingAvatarMode = mode; pendingAvatarData = null;
+            if (mode === 'provider') $('profileAvatar').src = currentUser.providerAvatar;
+            else $('profileAvatar').src = DEFAULT_AVATAR($('profileUsername').value || currentUser.username);
+        }
+
+        function handleAvatarFile(e) {
+            const file = e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast('Sadece PNG, JPG veya WEBP yükleyebilirsin.');
+            const img = new Image();
+            img.onload = () => {
+                const size = 256, c = document.createElement('canvas');
+                c.width = c.height = size;
+                const ctx = c.getContext('2d');
+                const m = Math.min(img.width, img.height);
+                ctx.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, size, size);
+                pendingAvatarData = c.toDataURL('image/jpeg', 0.85);
+                pendingAvatarMode = 'custom';
+                $('profileAvatar').src = pendingAvatarData;
+                URL.revokeObjectURL(img.src);
+            };
+            img.onerror = () => toast('Görsel okunamadı.');
+            img.src = URL.createObjectURL(file);
+        }
+
+        async function handleProfileSave(e) {
+            e.preventDefault();
+            try {
+                const body = { username: $('profileUsername').value.trim() };
+                if (pendingAvatarMode) { body.avatarMode = pendingAvatarMode; body.avatarData = pendingAvatarData; }
+                const { user } = await api('/api/profile', 'PATCH', body);
+                currentUser = user; renderNav(); closeProfileModal();
+                toast('Profil güncellendi.');
+            } catch (err) { toast(err.message); }
+        }
+
+        async function handlePasswordChange(e) {
+            e.preventDefault();
+            try {
+                await api('/api/profile/password', 'POST', {
+                    currentPassword: $('curPassword').value,
+                    newPassword: $('newPassword').value,
+                });
+                $('curPassword').value = ''; $('newPassword').value = '';
+                toast('Şifren güncellendi.');
+            } catch (err) { toast(err.message); }
+        }
+
+        // ---------- DUYURU / GÜNCELLEME / BANT ----------
+        function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+        function fmtDate(s) {
+            const d = new Date(s);
+            return isNaN(d) ? '' : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function renderPosts(listId, sectionId, navId, posts, isUpdate) {
+            const list = $(listId); list.replaceChildren();
+            $(sectionId).classList.toggle('hidden', !posts.length);
+            $(navId).classList.toggle('hidden', !posts.length);
+            posts.forEach((p) => {
+                const card = mk('div', 'glass p-5 sm:p-6 rounded-2xl border ' + (isUpdate ? 'border-unoGreen/25' : 'border-unoYellow/25'));
+                const head = mk('div', 'flex flex-wrap items-center justify-between gap-2 mb-2');
+                const left = mk('div', 'flex items-center gap-2 flex-wrap');
+                if (isUpdate && p.version) left.appendChild(mk('span', 'text-xs font-black px-2.5 py-1 rounded-lg bg-unoGreen/20 text-unoGreen', p.version));
+                left.appendChild(mk('h3', 'font-bold text-white text-lg', p.title));
+                head.append(left, mk('span', 'text-xs text-slate-500', fmtDate(p.created_at)));
+                card.append(head, mk('p', 'text-slate-300 text-sm leading-relaxed whitespace-pre-line break-words', p.body));
+                list.appendChild(card);
+            });
+        }
+
+        let bannerSig = '';
+        function renderBanner(banners) {
+            const sig = JSON.stringify(banners.map((b) => [b.id, b.text]));
+            if (sig === bannerSig) return;
+            bannerSig = sig;
+            const bar = $('promoBar'), track = $('promoTrack');
+            track.replaceChildren();
+            if (!banners.length) {
+                bar.classList.remove('on');
+                document.documentElement.style.setProperty('--banner-h', '0px');
+                document.body.style.paddingBottom = '';
+                return;
+            }
+            bar.classList.add('on');
+            document.documentElement.style.setProperty('--banner-h', '32px');
+            document.body.style.paddingBottom = '32px';
+            const copy = mk('div', 'promo-copy');
+            const fill = () => banners.forEach((b) => { copy.appendChild(mk('span', 'promo-item', b.text)); copy.appendChild(mk('span', 'promo-sep', '✦')); });
+            track.appendChild(copy);
+            fill();
+            let guard = 0;
+            while (copy.offsetWidth < window.innerWidth + 50 && guard++ < 40) fill();
+            track.appendChild(copy.cloneNode(true));
+            track.style.animationDuration = Math.max(10, copy.offsetWidth / 70) + 's';
+        }
+
+        async function loadSite() {
+            try {
+                const site = await api('/api/site');
+                renderPosts('announcementList', 'announcements', 'navAnn', site.announcements, false);
+                renderPosts('updateList', 'updates', 'navUpd', site.updates, true);
+                renderBanner(site.banners);
+            } catch (e) {}
+        }
+        loadSite();
+        setInterval(loadSite, 30000);
+
+        // ---------- CANLI DESTEK ----------
+        const support = { open: false, ticketId: null, sig: '', maxAdminId: 0, timer: null };
+        const SEEN_KEY = 'uno_support_seen';
+        function getSeen() { try { return Number(localStorage.getItem(SEEN_KEY)) || 0; } catch (e) { return 0; } }
+        function setSeen(n) { try { localStorage.setItem(SEEN_KEY, String(n)); } catch (e) {} }
+
+        function renderSupport(data) {
+            const msgs = data.messages || [];
+            const t = data.ticket;
+            const last = msgs.length ? msgs[msgs.length - 1].id : 0;
+            support.maxAdminId = msgs.reduce((m, x) => (x.sender === 'admin' && x.id > m ? x.id : m), 0);
+
+            // okunmamış yanıt göstergesi
+            const unread = !support.open && support.maxAdminId > getSeen();
+            $('supportDot').classList.toggle('hidden', !unread);
+            $('supportDot2').classList.toggle('hidden', !unread);
+            if (support.open && support.maxAdminId > getSeen()) setSeen(support.maxAdminId);
+
+            const sig = (t ? t.id + ':' + t.status : 'none') + ':' + last;
+            if (sig === support.sig) return;
+            support.sig = sig;
+            support.ticketId = t ? t.id : null;
+
+            const box = $('supportMessages');
+            const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 80 || !box.children.length;
+            box.replaceChildren();
+            const hello = mk('div', 'flex justify-start');
+            hello.appendChild(mk('div', 'sup-msg bg-slate-800 text-slate-200', 'Merhaba! 👋 Bir mesaj yaz, destek ekibimiz en kısa sürede yanıt verecek.'));
+            box.appendChild(hello);
+            msgs.forEach((m) => {
+                const mine = m.sender === 'user';
+                const row = mk('div', 'flex ' + (mine ? 'justify-end' : 'justify-start'));
+                row.appendChild(mk('div', 'sup-msg ' + (mine ? 'bg-gradient-to-r from-unoRed to-red-600 text-white' : 'bg-slate-800 text-slate-100'), m.text));
+                box.appendChild(row);
+            });
+            if (t && t.status === 'closed') {
+                box.appendChild(mk('p', 'text-center text-[11px] text-slate-500 pt-2', 'Bu destek kapatıldı. Yeni bir mesaj yazarak yeni destek başlatabilirsin.'));
+            }
+            if (stick || support.open) box.scrollTop = box.scrollHeight;
+        }
+
+        async function pollSupport() {
+            clearTimeout(support.timer);
+            try { renderSupport(await api('/api/support')); } catch (e) {}
+            support.timer = setTimeout(pollSupport, support.open ? 3000 : 10000);
+        }
+
+        function toggleSupport() {
+            support.open = !support.open;
+            $('supportPanel').classList.toggle('hidden', !support.open);
+            if (support.open) {
+                setSeen(Math.max(getSeen(), support.maxAdminId));
+                $('supportDot').classList.add('hidden'); $('supportDot2').classList.add('hidden');
+                const box = $('supportMessages'); box.scrollTop = box.scrollHeight;
+                $('supportInput').focus();
+            }
+            pollSupport();
+        }
+
+        async function sendSupport(e) {
+            e.preventDefault();
+            const inp = $('supportInput');
+            const text = inp.value.trim();
+            if (!text) return;
+            inp.value = '';
+            try {
+                renderSupport(await api('/api/support/message', 'POST', { text }));
+                const box = $('supportMessages'); box.scrollTop = box.scrollHeight;
+            } catch (err) { toast(err.message); inp.value = text; }
+        }
+        pollSupport();
+
+        // ---------- İNDİRME ----------
+        function startDownload() {
+            const box = $('downloadProgressBox'), bar = $('downloadBar'), percent = $('downloadPercent');
+            box.classList.remove('hidden');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 15) + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        const blob = new Blob(["UNO Online Game Installer v2.4"], { type: "text/plain" });
+                        const link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob);
+                        link.download = "UNO_Online_Setup_v2.4.exe";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        toast("İndirme tamamlandı! UNO_Online_Setup_v2.4.exe dosyasını çalıştırabilirsin.");
+                    }, 500);
+                }
+                bar.style.width = progress + '%';
+                percent.innerText = progress + '%';
+            }, 250);
+        }
+    </script>
+</body>
+</html>
